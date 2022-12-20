@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.CalendarView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorLong
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,46 +16,42 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val cal = CalendarView(this) // USTAWIENIE ZMIENNEJ KALENDARZA
-        cal.setDate(Calendar.getInstance().getTimeInMillis(),false,true); // POBRANIE CZASU W MILISEKUNDACH
+        val cal = CalendarView(this)
+        cal.setDate(Calendar.getInstance().getTimeInMillis(),false,true);
+        var dataprzyjazdu = 0L
+        var datapowrotu = 0L
+        val formatter = SimpleDateFormat("dd/MM/yyyy")
 
-        val formatter = SimpleDateFormat("dd/MM/yyyy") // USTAWIENIE FORMATU DATY
+        findViewById<TextView>(R.id.textView_wyjazd).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString()
+        findViewById<TextView>(R.id.textView_powrot).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString()
+        findViewById<CalendarView>(R.id.kalendarz).minDate = findViewById<CalendarView>(R.id.kalendarz).date
+        findViewById<CalendarView>(R.id.kalendarz).maxDate = findViewById<CalendarView>(R.id.kalendarz).date + 63113852000
 
-        var departure_date = 0L
-        var date_of_return = 0L
-        val data = findViewById<CalendarView>(R.id.kalendarz).date
-
-        findViewById<TextView>(R.id.textView_wyjazd).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString() // TEXTVIEW OTRZYMUJE WARTOSC WYJAZDU (DEFAULT: DZISIEJSZA DATA)
-        findViewById<TextView>(R.id.textView_powrot).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString() // TEXTVIEW OTRZYMUJE WARTOSC POWROTU (DEFAULT: DZISIEJSZA DATA)
-
-        findViewById<CalendarView>(R.id.kalendarz).minDate = findViewById<CalendarView>(R.id.kalendarz).date // USTAWIENIE MIN. DATY NA AKTUALNY DZIEŃ
-        findViewById<CalendarView>(R.id.kalendarz).maxDate = findViewById<CalendarView>(R.id.kalendarz).date + 63113852000 // USTAWIENIE MAKS. DATY O 2 LATA DO PRZODU
-
-        findViewById<Button>(R.id.btn_przyjazd).setOnClickListener { // USTAWIENIE DATY PRZYJAZDU
+        findViewById<Button>(R.id.btn_przyjazd).setOnClickListener {
             val a = findViewById<CalendarView>(R.id.kalendarz).date
             val dd = findViewById<CalendarView>(R.id.kalendarz).minDate
 
-            if  (date_of_return != 0L) // SPRAWDZENIE: CZY ZOSTAŁA ZATWIERDZONA DATA POWROTU
+            if  (datapowrotu != 0L)
             {
                 if (a == dd)
                 {
-                    departure_date = a
+                    dataprzyjazdu = a
                     findViewById<TextView>(R.id.textView_ERROR).text = ""
                     findViewById<TextView>(R.id.textView_wyjazd).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString()
                 }
 
                 else
                 {
-                    if (date_of_return >= departure_date)
+                    if (datapowrotu >= dataprzyjazdu)
                     {
-                        if (date_of_return - a < 0) // ZABEZPIECZENIE: GDY DATA POWROTU JEST STARSZA OD DATY PRZYJAZDU WYRZUCA BŁĄD I NIE OBLICZA RÓŻNICY
+                        if (dataprzyjazdu - a < 0)
                         {
                             findViewById<TextView>(R.id.textView_ERROR).text = "Data wyjazdu jest przed datą przyjazdu! Błąd!"
                         }
 
                         else
                         {
-                            departure_date = a
+                            dataprzyjazdu = a
                             findViewById<TextView>(R.id.textView_ERROR).text = ""
                             findViewById<TextView>(R.id.textView_wyjazd).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString()
                         }
@@ -69,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
             else
             {
-                departure_date = a
+                dataprzyjazdu = a
                 findViewById<TextView>(R.id.textView_ERROR).text = ""
                 findViewById<TextView>(R.id.textView_wyjazd).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString()
             }
@@ -81,14 +78,14 @@ class MainActivity : AppCompatActivity() {
             b.date = Date.UTC(i - 1900, i2, i3, 4, 4, 0)
         }
 
-        findViewById<Button>(R.id.btn_powrot).setOnClickListener { // USTAWIENIE DATY POWROTU
+        findViewById<Button>(R.id.btn_powrot).setOnClickListener {
             val a = findViewById<CalendarView>(R.id.kalendarz).date
 
-            if (departure_date != 0L) // SPRAWDZENIE: CZY ZOSTAŁA ZATWIERDZONA DATA PRZYJAZDU
+            if (dataprzyjazdu != 0L)
             {
-                if (a - departure_date >= 0)  // ZABEZPIECZENIE: GDY DATA POWROTU JEST STARSZA OD DATY PRZYJAZDU WYRZUCA BŁĄD
+                if (a - dataprzyjazdu >= 0)
                 {
-                    date_of_return = a
+                    datapowrotu = a
                     findViewById<TextView>(R.id.textView_ERROR).text = ""
                     findViewById<TextView>(R.id.textView_powrot).text = formatter.format(findViewById<CalendarView>(R.id.kalendarz).date).toString()
                 }
@@ -104,23 +101,23 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<Button>(R.id.btn_count).setOnClickListener { // OBLICZANIE RÓŻNICY
+        findViewById<Button>(R.id.btn_count).setOnClickListener {
 
             findViewById<TextView>(R.id.textView_count).text = ""
 
 
-            if (departure_date != 0L && date_of_return != 0L) // SPRAWDZENIE: CZY DATY ZOSTAŁY ZATWIERDZONE
+            if (dataprzyjazdu != 0L && datapowrotu != 0L)
             {
-                if (departure_date < date_of_return) // ZABEZPIECZENIE: GDY DATA POWROTU JEST STARSZA OD DATY PRZYJAZDU WYRZUCA BŁĄD I NIE OBLICZA RÓŻNICY
+                if (dataprzyjazdu < datapowrotu)
                 {
                     findViewById<TextView>(R.id.textView_ERROR).text = ""
 
-                    val result = ((date_of_return - departure_date) / 86400000) + 1 // OBLICZANIE DŁUGOŚCI WYJAZDU, ZMIANA MILISEKUND NA DNI
+                    val wynik = ((datapowrotu - dataprzyjazdu) / 86400000) + 1
                     findViewById<TextView>(R.id.textView_count).text = ""
-                    findViewById<TextView>(R.id.textView_count).text = "Wyjazd trwa " + result + " dni"
+                    findViewById<TextView>(R.id.textView_count).text = "Wyjazd trwa " + wynik + " dni"
                 }
 
-                else if (departure_date == date_of_return) // GDY DZIEN PRZYJAZDU JEST TAKI SAM JAK DATA POWROTU
+                else if (dataprzyjazdu == datapowrotu)
                 {
                     findViewById<TextView>(R.id.textView_count).text = ""
                     findViewById<TextView>(R.id.textView_count).text = "Wyjazd trwa 0 dni"
@@ -132,20 +129,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            else if (departure_date == 0L && date_of_return == 0L) // ZABECZPIECZENIE: ŻADNA DATA NIE ZOSTAŁA ZATWIERDZONA
+            else if (dataprzyjazdu == 0L && datapowrotu == 0L)
             {
                 findViewById<TextView>(R.id.textView_ERROR).text = "Data wyjazdu i powrotu nie została zatwierdzona! Błąd!"
             }
 
-            else if (departure_date == 0L && date_of_return != 0L) // ZABEZPIECZENIE: DATA WYJAZDU NIE ZOSTAŁA ZATWIERDZONA
+            else if (dataprzyjazdu == 0L && datapowrotu != 0L)
             {
                 findViewById<TextView>(R.id.textView_ERROR).text = "Data wyjazdu nie została zatwierdzona! Błąd!"
             }
 
-            else if (departure_date != 0L && date_of_return == 0L) // ZABEZPIECZENIE: DATA POWROTU NIE ZOSTAŁA ZATWIERDZONA
+            else if (dataprzyjazdu != 0L && datapowrotu == 0L)
             {
                 findViewById<TextView>(R.id.textView_ERROR).text = "Data powrotu nie została zatwierdzona! Błąd!"
             }
         }
+
+        (findViewById<CalendarView)(R.id.kalendarz).toColor() = "purple_200";
     }
 }
