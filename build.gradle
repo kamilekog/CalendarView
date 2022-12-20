@@ -5,3 +5,18 @@ plugins {
     id 'org.jetbrains.kotlin.android' version '1.7.20' apply false
     id 'sun.bob:mcalendarview' version '1.0.0' apply true
 }
+/*
+calendarView = ((MCalendarView) view.findViewById(R.id.calendar_exp));
+
+ArrayList<DateData> dates=new ArrayList<>();
+dates.add(new DateData(2018,04,26));
+dates.add(new DateData(2018,04,27));
+
+for(int i=0;i<dates.size();i++) {
+    //mark multiple dates with this code.
+    calendarView.markDate(dates.get(i).getYear(),dates.get(i).getMonth(),dates.get(i).getDay());
+}
+
+
+Log.d("marked dates:-","" + calendarView.getMarkedDates()); //get all marked dates.
+ */
